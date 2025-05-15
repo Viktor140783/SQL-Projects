@@ -1,0 +1,24 @@
+#Порахувати долю івентів, в яких є відмітка session_engaged = 1 від усіх івентів, де є значення в цьому полі (відмінне від Null).
+#Вивести інформацію в розрізі пристроїв (device).
+#💡 Враховуй значення долі сесій як рядкове значення.
+
+
+with sessions_eng as(
+SELECT
+ep.ga_session_id,
+ep.event_name,
+params.value.string_value
+
+
+ FROM `data-analytics-mate.DA.event_params` ep, unnest (ep.event_params) as params
+ where params.key = 'session_engaged'
+)
+select
+sp.device,
+count (case when sessions_eng.string_value = '1' then event_name end) as cnt_eng_1,
+count (case when sessions_eng.string_value is not null then event_name end)  as cnt_eng_not_null,
+count (case when sessions_eng.string_value = '1' then event_name end)/count (case when sessions_eng.string_value is not null then event_name end) * 100 as event_precent
+from `data-analytics-mate.DA.session_params`sp
+join sessions_eng
+on sp.ga_session_id = sessions_eng.ga_session_id
+group by sp.device
