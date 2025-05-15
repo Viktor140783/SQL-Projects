@@ -1,0 +1,134 @@
+#Необхідно зібрати дані, які допоможуть аналізувати динаміку створення акаунтів, активність користувачів за листами (відправлення, відкриття, переходи), 
+а також оцінювати поведінку в категоріях, таких як інтервал відправлення, верифікація акаунтів і статус підписки. Дані дозволять порівнювати активність між країнами, 
+визначати ключові ринки, сегментувати користувачів за різними параметрами.
+
+
+
+#Account metrics
+with Account_metrics as (
+SELECT s.date as date,
+       sp.country,
+       acc.send_interval,
+       acc.is_verified,
+       acc.is_unsubscribed,
+       count(acc.id) as account_cnt,
+ 
+
+
+ FROM `data-analytics-mate.DA.account` acc
+ join `data-analytics-mate.DA.account_session` acs
+ on acc.id = acs.account_id
+ join `data-analytics-mate.DA.session` s  
+ on acs.ga_session_id = s.ga_session_id
+ join `data-analytics-mate.DA.session_params` sp  
+ on acs.ga_session_id = sp.ga_session_id
+ group by s.date, sp.country, acc.send_interval, acc.is_verified, acc.is_unsubscribed
+),
+#email metrics
+email_metrics as (
+
+
+SELECT date_add(s.date, INTERVAL es.sent_date day) as date,
+       sp.country,
+       acc.send_interval,
+       acc.is_verified,
+       acc.is_unsubscribed,
+      count(es.id_message) as sent_msg,
+      count(eo.id_message) as open_msg,
+      count(ev.id_message) as visit_msg
+ FROM `data-analytics-mate.DA.email_sent` es  
+ left join `data-analytics-mate.DA.email_open` eo
+ on es.id_account = eo.id_account
+ left join `data-analytics-mate.DA.email_visit` ev
+ on es.id_account = ev.id_account
+ join `data-analytics-mate.DA.account_session` acs
+ on acs.account_id = es.id_account
+ join `data-analytics-mate.DA.session` s  
+ on acs.ga_session_id = s.ga_session_id
+ join `data-analytics-mate.DA.session_params` sp
+ on s.ga_session_id = sp.ga_session_id
+ join `data-analytics-mate.DA.account` acc
+ on acc.id = acs.account_id
+
+
+ group by date_add(s.date, INTERVAL es.sent_date day), sp.country, acc.send_interval, acc.is_verified, acc.is_unsubscribed
+),
+#union metrics
+union_metrics as (
+select date,
+       country,
+       send_interval,
+       is_verified,
+       is_unsubscribed,
+       account_cnt,
+       0 as sent_msg,
+       0 as open_msg,
+       0 as visit_msg
+       
+       from Account_metrics
+union all
+select date,
+       country,
+       send_interval,
+       is_verified,
+       is_unsubscribed,
+       0 as account_cnt,
+      sent_msg,
+      open_msg,
+      visit_msg
+      from email_metrics
+),
+#Union calculation
+union_metrics2 as (
+select date,
+       country,
+       send_interval,
+       is_verified,
+       is_unsubscribed,
+       sum(union_metrics.account_cnt) as account_cnt,
+       sum(union_metrics.sent_msg) as sent_msg,
+       sum(union_metrics.open_msg) as open_msg,
+       sum(union_metrics.visit_msg) as visit_msg
+       from union_metrics
+       group by date, country, send_interval, is_verified, is_unsubscribed
+),
+#total metrics calculation by countries
+total_metrics as (
+select
+      date,
+      country,
+      send_interval,
+      is_verified,
+      is_unsubscribed,
+      account_cnt,
+      sent_msg,
+      open_msg,
+      visit_msg,
+      sum(account_cnt) over (partition by country) as total_country_account_cnt,
+      sum(sent_msg) over (partition by country) as total_country_sent_cnt
+      from union_metrics2
+),
+#ranking total metrics by countries
+ranking_total_metrics as (
+select
+      date,
+      country,
+      send_interval,
+      is_verified,
+      is_unsubscribed,
+      account_cnt,
+      sent_msg,
+      open_msg,
+      visit_msg,
+      total_country_account_cnt,
+      total_country_sent_cnt,
+      dense_rank() over (order by total_country_account_cnt desc) as rank_total_country_account_cnt,
+      dense_rank() over (order by total_country_sent_cnt desc) as rank_total_country_sent_cnt
+from total_metrics
+)
+#filtering by top ten countries - final select
+select *
+from  ranking_total_metrics
+where rank_total_country_sent_cnt <= 10 or rank_total_country_sent_cnt <= 10
+order by date
+
