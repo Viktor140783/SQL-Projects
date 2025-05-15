@@ -1,6 +1,10 @@
 #Порахувати долю івентів, в яких є відмітка session_engaged = 1 від усіх івентів, де є значення в цьому полі (відмінне від Null).
 #Вивести інформацію в розрізі пристроїв (device).
-#💡 Враховуй значення долі сесій як рядкове значення.
+#Враховуй значення долі сесій як рядкове значення.
+
+#Calculate the share of events where session_engaged = 1 out of all events where this field has a value (not NULL).
+#Display the information broken down by device.
+#Represent the session share as a string value.
 
 
 with sessions_eng as(
