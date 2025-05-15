@@ -2,9 +2,14 @@
 #Визначити дату першого та останнього надсилання імейлів для кожного акаунту у місяці.
 #Використай віконні функції та результат надішли у такому форматі:
 
-
 #sent_month, id_account, sent_msg_percent_from_this_month, first_sent_date, last_sent_date
 
+#Calculate the percentage of emails out of the total number sent to each account within each month
+#(number of emails sent to the account in a month / total number of emails sent to all accounts in that month).
+#Identify the date of the first and last email sent to each account within the month.
+#Use window functions, and provide the result in the following format:
+
+#sent_month, id_account, sent_msg_percent_from_this_month, first_sent_date, last_sent_date
 
 select
 distinct sent_month,
