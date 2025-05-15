@@ -1,6 +1,11 @@
 #Необхідно зібрати дані, які допоможуть аналізувати динаміку створення акаунтів, активність користувачів за листами (відправлення, відкриття, переходи), 
-а також оцінювати поведінку в категоріях, таких як інтервал відправлення, верифікація акаунтів і статус підписки. Дані дозволять порівнювати активність між країнами, 
-визначати ключові ринки, сегментувати користувачів за різними параметрами.
+#а також оцінювати поведінку в категоріях, таких як інтервал відправлення, верифікація акаунтів і статус підписки. Дані дозволять порівнювати активність між країнами, 
+#визначати ключові ринки, сегментувати користувачів за різними параметрами.
+
+#We need to collect data that will help analyze the dynamics of account creation, user activity by emails (sent, opened, clicks),
+#as well as evaluate behavior in categories such as sending intervals, account verification, and subscription status.
+#The data will allow us to compare activity across countries, identify key markets, and segment users based on various parameters.
+
 
 
 
