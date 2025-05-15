@@ -1,0 +1,53 @@
+#Revenue by Device and Continent with Sessions
+#У цьому завданні тобі потрібно отримати результуючий набір із такими стовпчиками:
+
+
+#| Continent | Revenue | Revenue from Mobile | Revenue from Desktop | % Revenue from Total | Account Count | Verified Account | Session Count |
+
+
+with revenue as (
+select
+sp.continent,
+sum(p.price) as revenue,
+sum (case when device = 'mobile' then p.price end) as  Revenue_from_Mobile,
+sum (case when device = 'desktop' then p.price end) as Revenue_from_Desktop
+
+
+from `data-analytics-mate.DA.session_params` sp  
+join `data-analytics-mate.DA.order` o  
+on sp.ga_session_id = o.ga_session_id
+join `data-analytics-mate.DA.product` p  
+on o.item_id = p.item_id
+group by sp.continent
+),
+--------------
+session_account as (
+select
+sp.continent,
+count(sp.ga_session_id) as session_count,
+count(acs.account_id) as account_count,
+count (case when is_verified = 1 then acc.id end) as verified_account
+
+
+from `data-analytics-mate.DA.session_params` sp
+left join `data-analytics-mate.DA.account_session` acs
+on sp.ga_session_id = acs.ga_session_id
+left join `data-analytics-mate.DA.account`acc
+on acs.account_id = acc.id
+group by sp.continent
+)
+-----------
+select
+revenue.continent,
+revenue.revenue,
+revenue.Revenue_from_Mobile,
+revenue.Revenue_from_Desktop,
+revenue.revenue / sum(revenue.revenue) over () *100 as percent_Revenue_from_Total,
+session_account.account_count,
+session_account.verified_account,
+session_account.session_count
+
+
+from session_account
+left join revenue
+on session_account.continent = revenue.continent
