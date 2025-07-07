@@ -1,2 +1,2 @@
 # SQL-Projects
-This repository contains examples of SQL queries I've written during my data analytics learning journey. 
+This repository contains examples of SQL queries I've written during my data analytics work. 
